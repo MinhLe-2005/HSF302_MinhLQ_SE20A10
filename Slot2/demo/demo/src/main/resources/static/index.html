@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 2px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+        }
+        .btn-update {
+            background-color: #2196F3;
+            color: white;
+        }
+        .btn-delete {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn-add {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .form-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quản Lý Sinh Viên</h1>
+    
+    <div class="form-container">
+        <h3>Thêm/Cập nhật Sinh Viên</h3>
+        <input type="hidden" id="studentId">
+        <input type="text" id="fullName" placeholder="Họ và tên">
+        <input type="email" id="email" placeholder="Email">
+        <input type="number" id="age" placeholder="Tuổi">
+        <button class="btn-add" onclick="saveStudent()">Lưu</button>
+        <button onclick="clearForm()">Hủy</button>
+    </div>
+
+    <table id="studentTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Họ và Tên</th>
+                <th>Email</th>
+                <th>Tuổi</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody id="studentList">
+        </tbody>
+    </table>
+
+    <script>
+        // Load students when page loads
+        window.onload = function() {
+            loadStudents();
+        };
+
+        // Load all students
+        function loadStudents() {
+            fetch('/api/students')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('studentList');
+                    tbody.innerHTML = '';
+                    data.forEach(student => {
+                        const row = `
+                            <tr>
+                                <td>${student.id}</td>
+                                <td>${student.fullName}</td>
+                                <td>${student.email}</td>
+                                <td>${student.age}</td>
+                                <td>
+                                    <button class="btn-update" onclick="editStudent(${student.id}, '${student.fullName}', '${student.email}', ${student.age})">Sửa</button>
+                                    <button class="btn-delete" onclick="deleteStudent(${student.id})">Xóa</button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Save student (create or update)
+        function saveStudent() {
+            const id = document.getElementById('studentId').value;
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const age = document.getElementById('age').value;
+
+            const student = { fullName, email, age: parseInt(age) };
+
+            if (id) {
+                // Update
+                fetch(`/api/students/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(student)
+                })
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);
+                    clearForm();
+                    loadStudents();
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                // Create
+                fetch('/api/students', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(student)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Thêm sinh viên thành công!');
+                    clearForm();
+                    loadStudents();
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // Edit student
+        function editStudent(id, fullName, email, age) {
+            document.getElementById('studentId').value = id;
+            document.getElementById('fullName').value = fullName;
+            document.getElementById('email').value = email;
+            document.getElementById('age').value = age;
+        }
+
+        // Delete student
+        function deleteStudent(id) {
+            if (confirm('Bạn có chắc muốn xóa sinh viên này?')) {
+                fetch(`/api/students/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);
+                    loadStudents();
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('studentId').value = '';
+            document.getElementById('fullName').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('age').value = '';
+        }
+    </script>
+</body>
+</html>

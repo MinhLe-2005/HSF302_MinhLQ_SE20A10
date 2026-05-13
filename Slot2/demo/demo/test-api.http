@@ -1,0 +1,22 @@
+### Get all students
+GET http://localhost:8081/api/students
+
+### Create new student
+POST http://localhost:8081/api/students
+Content-Type: application/json
+
+{
+  "fullName": "Lê Văn C",
+  "email": "c@fpt.edu.vn",
+  "age": 22
+}
+
+### Update student
+PUT http://localhost:8081/api/students/1
+Content-Type: application/json
+
+{
+  "fullName": "Nguyễn Văn A Updated",
+  "email": "a.updated@fpt.edu.vn",
+  "age": 22
+}
